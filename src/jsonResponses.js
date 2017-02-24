@@ -31,7 +31,7 @@ const respondJSONMeta = (request, response, status) => {
     
 };
 
-// return user object as JSON
+
 const getUsers = (request, response) => {
     
   const responseJSON = {
@@ -57,7 +57,7 @@ const updateUser = (request, response) => {
       createdAt: Date.now(),
   };
     
-    user[newUser,createdAt] = newUser;
+    users[newUser.createdAt] = newUser;
     etag = crypto.createHash('sha1').update(JSON.stringify(users));
     digest = etag.digest('hex');
     
