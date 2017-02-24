@@ -1,11 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Our simple HTTP server</title>
+  <title>Our simple HTTP serve(r</title>
   <link rel="stylesheet" type="text/css" href="/style.css">
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
   <script type="text/babel">
+
+ const parseJSON = (xhr, content) => {
+      const obj = JSON.parse(xhr.response);
+      console.dir(obj);
+      
+    
+      if(obj.message) {
+        const p = document.createElement('p');
+        p.textContent = `Message: ${obj.message}`;
+        content.appendChild(p);
+      }
+      
+      if(obj.users) {
+        const userList = document.createElement('p');
+        const users = JSON.stringify(obj.users);
+        userList.textContent = users;
+        content.appendChild(userList);
+      }
+    };
+
+const handleResponse = (xhr, paresResponse) => {
+   
+    const content = document.querySelector('#content');
+    
+    console.log(xhr.getResponseHeader ('etag'));
+    
+    console.log(xhr.status);
+      
+      //check the status code
+      switch(xhr.status) {
+        case 200: //success
+          content.innerHTML = `<b>Success</b>`;
+          break;
+        case 201: //created
+          content.innerHTML = '<b>Create</b>';
+          break;
+        case 204: //updated (no response back from server)
+          content.innerHTML = '<b>Updated (No Content)</b>';
+          return;
+        case 304:
+          content.innerHTML = '<b>Not Modified</b>'
+          break;
+        case 400: //bad request
+          content.innerHTML = `<b>Bad Request</b>`;
+          break;
+        case 404:
+          content.innerHTML = '<b>Not Found</b>'  
+        default: //any other status code
+          content.innerHTML = `Error code not implemented by client.`;
+          break;
+      }
+    
+    
+    
+    if(paresResponse){
+     parseJSON(xhr, content);
+    } else {
+        console.log('recieved ')
+    }
+    
+};
+
+const sendAjax = (e, userForm) => {
+    
+      const url = userForm.querySelector('#urlField').value;
+      const method = userForm.querySelector('#methodSelect').value;
+    
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, url);
+  
+      xhr.setRequestHeader('Accept', 'application/json');
+
+      
+      if(method == 'get') {
+        xhr.onload = () => handleResponse(xhr, true);
+      } else {
+        xhr.onload = () => handleResponse(xhr, false);
+      }
+      
+      xhr.send();
+      
+      e.preventDefault();
+    
+      return false;
+    
+};
+
+ 
+    const sendPost = (e, nameForm) => {
+      
+      const nameAction = nameForm.getAttribute('action');
+      const nameMethod = nameForm.getAttribute('method');
+      
+     
+      const nameField = nameForm.querySelector('#nameField');
+      const ageField = nameForm.querySelector('#ageField');
+      
+      
+      const xhr = new XMLHttpRequest();
+      
+      xhr.open(nameMethod, nameAction);
+      
+     
+      xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+     
+      xhr.setRequestHeader ('Accept', 'application/json');
+      
+   
+      xhr.onload = () => handleResponse(xhr, true);
+      
+      const formData = `name=${nameField.value}&age=${ageField.value}`;
+      
+      
+      xhr.send(formData);
+    
+      
+      e.preventDefault();
+      
+      return false;
+    };
+
+const init = () => {
+   const nameForm = document.querySelector('#nameForm');
+    const userForm = document.querySelector('#userForm');
+    
+    const getUsers = (e) => sendAjax(e, userForm);
+     const addUser = (e) => sendPost(e, nameForm);
+    
+    userForm.addEventListener('submit', getUsers);
+   nameForm.addEventListener('submit', addUser);
+    
+};
+
+window.onload = init();
 
   </script>
 </head>
@@ -28,7 +162,7 @@
         <option value="get">GET</option>
         <option value="head">HEAD</option>
       </select>
-      <input type="submit" value="Get User" />
+      <input type="submit" value="Get User" id="getUsers" />
     </form>
   </section>
   <section id="content">
