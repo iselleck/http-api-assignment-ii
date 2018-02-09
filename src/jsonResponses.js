@@ -6,77 +6,73 @@ let etag = crypto.createHash('sha1').update(JSON.stringify(users));
 let digest = etag.digest('hex');
 
 const respondJSON = (request, response, status, object) => {
-    
-    const headers = {
-        'Content-Type': 'application/json',
-        etag: digest,
-    };
-    
+  const headers = {
+    'Content-Type': 'application/json',
+    etag: digest,
+  };
+
   response.writeHead(status, headers);
   response.write(JSON.stringify(object));
   response.end();
-    
-  
 };
 
 
 const respondJSONMeta = (request, response, status) => {
-    
-      const headers = {
-        'Content-Type': 'application/json',
-        etag: digest,
-    };
-    
+  const headers = {
+    'Content-Type': 'application/json',
+    etag: digest,
+  };
+
   response.writeHead(status, headers);
   response.end();
-    
 };
 
 
 const getUsers = (request, response) => {
-    
   const responseJSON = {
     users,
   };
-    
-    if(request.headers['if-none-match'] === digest){
-        return respondJSONMeta(request, response, 304);
-    }
 
- return respondJSON(request, response, 200, responseJSON);
+  if (request.headers['if-none-match'] === digest) {
+    return respondJSONMeta(request, response, 304);
+  }
+
+  return respondJSON(request, response, 200, responseJSON);
 };
 
 const getUsersMeta = (request, response) => {
-  if(request.headers['if-none-match'] === digest){
-      return respondJSONMeta(request, response, 304);
-  }  
+  if (request.headers['if-none-match'] === digest) {
+    return respondJSONMeta(request, response, 304);
+  }
+
+  return respondJSONMeta(request, response, 200);
 };
 
 
 const updateUser = (request, response) => {
   const newUser = {
-      createdAt: Date.now(),
+    createdAt: Date.now(),
   };
-    
-    users[newUser.createdAt] = newUser;
-    etag = crypto.createHash('sha1').update(JSON.stringify(users));
-    digest = etag.digest('hex');
-    
-    return respondJSON(request, response, 201, newUser);
+
+  users[newUser.createdAt] = newUser;
+  etag = crypto.createHash('sha1').update(JSON.stringify(users));
+  digest = etag.digest('hex');
+
+  return respondJSON(request, response, 201, newUser);
 };
 
 const notFound = (request, response) => {
   const responseJSON = {
-      message: 'Cannot find the page you are looking for',
-      id:'notFound',
-  } 
-  
+    message: 'Cannot find the page you are looking for',
+    id: 'notFound',
+  };
+
   respondJSON(request, response, 404, responseJSON);
 };
 
 const notFoundMeta = (request, response) => {
-    respondJSONMeta(request, response, 404);
-}
+  respondJSONMeta(request, response, 404);
+};
 
 
 const addUser = (request, response, body) => {
@@ -102,21 +98,21 @@ const addUser = (request, response, body) => {
   users[body.name].name = body.name;
   users[body.name].age = body.age;
 
-  
+
   if (responseCode === 201) {
     responseJSON.message = 'Created Successfully';
     return respondJSON(request, response, responseCode, responseJSON);
   }
-    
+
   return respondJSONMeta(request, response, responseCode);
 };
 
 // public exports
 module.exports = {
   getUsers,
-    getUsersMeta,
-    updateUser,
-    notFound,
-    notFoundMeta,
-    addUser,
+  getUsersMeta,
+  updateUser,
+  notFound,
+  notFoundMeta,
+  addUser,
 };
